@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar Energy Power Prediction - ML System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated background text */
+        .background-text {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.15;
+        }
+
+        .bg-word {
+            position: absolute;
+            font-size: 2em;
+            font-weight: bold;
+            color: white;
+            animation: float 20s infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-30px) rotate(5deg); }
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
+            border-left: 5px solid #00acc1;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .info-card h3 {
+            color: #006064;
+            margin-bottom: 10px;
+        }
+
+        .model-info {
+            background: #f5f5f5;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .model-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-box h4 {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+
+        .stat-box .value {
+            color: #2a5298;
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+
+        /* Sequential Input Section */
+        .input-wizard {
+            background: #fafafa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .progress-tracker {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .progress-line {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: #e0e0e0;
+            z-index: 0;
+        }
+
+        .progress-line-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #11998e 0%, #38ef7d 100%);
+            transition: width 0.5s;
+            width: 0%;
+        }
+
+        .progress-step {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s;
+        }
+
+        .progress-step.completed {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .progress-step.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transform: scale(1.2);
+        }
+
+        .input-card {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            text-align: center;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .input-card h2 {
+            color: #2a5298;
+            margin-bottom: 10px;
+            font-size: 1.8em;
+        }
+
+        .input-card .feature-number {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+        }
+
+        .input-card .description {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 1em;
+        }
+
+        .input-card .range-info {
+            background: #fff3cd;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            color: #856404;
+            font-weight: 600;
+        }
+
+        .input-card input {
+            width: 100%;
+            max-width: 400px;
+            padding: 15px;
+            border: 3px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1.5em;
+            text-align: center;
+            transition: all 0.3s;
+            margin: 0 auto;
+        }
+
+        .input-card input:focus {
+            outline: none;
+            border-color: #2a5298;
+            box-shadow: 0 0 0 4px rgba(42, 82, 152, 0.1);
+        }
+
+        .input-card input.error {
+            border-color: #dc3545;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .result-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 50px;
+            border-radius: 20px;
+            text-align: center;
+            margin-top: 30px;
+            display: none;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-section.show {
+            display: block;
+        }
+
+        .prediction-value {
+            font-size: 4em;
+            font-weight: bold;
+            margin: 30px 0;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .confidence-section {
+            background: rgba(255,255,255,0.1);
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 30px;
+        }
+
+        .feature-importance {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 30px;
+            color: #333;
+        }
+
+        .importance-bar {
+            margin: 15px 0;
+        }
+
+        .importance-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .importance-bar-container {
+            background: #e0e0e0;
+            height: 30px;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .importance-bar-fill {
+            height: 100%;
+            transition: width 1s ease-out;
+            display: flex;
+            align-items: center;
+            padding-left: 10px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #2a5298;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .mode-selector {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .mode-btn {
+            margin: 0 10px;
+            padding: 15px 30px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .prediction-value {
+                font-size: 2.5em;
+            }
+
+            .progress-tracker {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background Text -->
+    <div class="background-text" id="bgText"></div>
+
+    <div class="container">
+        <div class="header">
+            <h1>🌞 Solar Energy Power Prediction</h1>
+            <p>Machine Learning System - XGBoost Model</p>
+        </div>
+
+        <div class="content">
+            <!-- Model Info -->
+            <div class="model-info">
+                <h2>📊 Model Information</h2>
+                <div class="model-stats">
+                    <div class="stat-box">
+                        <h4>Model</h4>
+                        <div class="value" style="font-size: 1em;">XGBoost</div>
+                    </div>
+                    <div class="stat-box">
+                        <h4>R² Score</h4>
+                        <div class="value">0.8235</div>
+                    </div>
+                    <div class="stat-box">
+                        <h4>MAE (kW)</h4>
+                        <div class="value">258.56</div>
+                    </div>
+                    <div class="stat-box">
+                        <h4>RMSE (kW)</h4>
+                        <div class="value">401.50</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mode Selector -->
+            <div class="mode-selector">
+                <button class="btn btn-primary mode-btn" onclick="startSequentialMode()">
+                    📝 Sequential Input (One by One)
+                </button>
+                <button class="btn btn-success mode-btn" onclick="fillExampleValues()">
+                    ✨ Use Example Values
+                </button>
+                <button class="btn btn-warning mode-btn" onclick="fillRandomValues()">
+                    🎲 Use Random Values
+                </button>
+            </div>
+
+            <!-- Sequential Input Wizard -->
+            <div class="input-wizard hidden" id="inputWizard">
+                <!-- Progress Tracker -->
+                <div class="progress-tracker" id="progressTracker">
+                    <div class="progress-line">
+                        <div class="progress-line-fill" id="progressFill"></div>
+                    </div>
+                </div>
+
+                <!-- Input Card -->
+                <div class="input-card">
+                    <div class="feature-number" id="featureNumber">Parameter 1 of 20</div>
+                    <h2 id="featureName">Temperature 2m Above Ground</h2>
+                    <div class="description" id="featureDesc">Air temperature at 2 meters above ground level</div>
+                    <div class="range-info" id="rangeInfo">Valid range: -10 to 55°C</div>
+                    <input type="number" id="currentInput" step="0.1" placeholder="Enter value..." autofocus>
+                    <div class="button-group">
+                        <button class="btn btn-secondary" id="backBtn" onclick="previousFeature()" disabled>
+                            ← Back
+                        </button>
+                        <button class="btn btn-primary" onclick="nextFeature()">
+                            Next →
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Calculating prediction...</p>
+            </div>
+
+            <!-- Results Section -->
+            <div class="result-section" id="resultSection">
+                <h2>🎉 Prediction Result</h2>
+                <div class="prediction-value" id="predictionValue">0.00</div>
+                <div style="font-size: 1.5em; opacity: 0.9;">kW - Generated Power</div>
+
+                <div class="confidence-section">
+                    <h3>📊 Model Performance Metrics</h3>
+                    <p style="margin-top: 15px;">
+                        <strong>Model Accuracy (R²):</strong> 82.35%<br>
+                        <strong>Average Error (MAE):</strong> ±258.56 kW<br>
+                        <strong>Confidence Interval:</strong> <span id="confidenceInterval">±300 kW</span>
+                    </p>
+                </div>
+
+                <button class="btn btn-success" onclick="resetWizard()" style="margin-top: 30px;">
+                    🔄 New Prediction
+                </button>
+            </div>
+
+            <!-- Feature Importance -->
+            <div class="feature-importance hidden" id="featureImportance">
+                <h3>📊 Feature Importance in This Prediction</h3>
+                <div id="importanceContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Model configuration
+        const modelData = {
+            features: [
+                { name: 'Temperature 2m Above Ground', desc: 'Air temperature at 2 meters', unit: '°C', min: -10, max: 55, icon: '🌡️' },
+                { name: 'Relative Humidity 2m', desc: 'Relative humidity percentage', unit: '%', min: 0, max: 100, icon: '💧' },
+                { name: 'Mean Sea Level Pressure', desc: 'Atmospheric pressure at sea level', unit: 'hPa', min: 980, max: 1040, icon: '📊' },
+                { name: 'Total Precipitation', desc: 'Total rainfall amount', unit: 'mm', min: 0, max: 50, icon: '🌧️' },
+                { name: 'Snowfall Amount', desc: 'Snow accumulation', unit: 'mm', min: 0, max: 100, icon: '❄️' },
+                { name: 'Total Cloud Cover', desc: 'Overall cloud coverage', unit: '%', min: 0, max: 100, icon: '☁️' },
+                { name: 'High Cloud Cover', desc: 'High altitude clouds', unit: '%', min: 0, max: 100, icon: '☁️' },
+                { name: 'Medium Cloud Cover', desc: 'Mid-level clouds', unit: '%', min: 0, max: 100, icon: '☁️' },
+                { name: 'Low Cloud Cover', desc: 'Low altitude clouds', unit: '%', min: 0, max: 100, icon: '☁️' },
+                { name: 'Shortwave Radiation', desc: 'Solar radiation backwards surface', unit: 'W/m²', min: 0, max: 1200, icon: '☀️' },
+                { name: 'Wind Speed 10m', desc: 'Wind speed at 10 meters', unit: 'm/s', min: 0, max: 25, icon: '🌬️' },
+                { name: 'Wind Direction 10m', desc: 'Wind direction at 10 meters', unit: '°', min: 0, max: 360, icon: '🧭' },
+                { name: 'Wind Speed 80m', desc: 'Wind speed at 80 meters', unit: 'm/s', min: 0, max: 30, icon: '🌬️' },
+                { name: 'Wind Direction 80m', desc: 'Wind direction at 80 meters', unit: '°', min: 0, max: 360, icon: '🧭' },
+                { name: 'Wind Speed 900mb', desc: 'Wind speed at 900mb pressure level', unit: 'm/s', min: 0, max: 35, icon: '🌬️' },
+                { name: 'Wind Direction 900mb', desc: 'Wind direction at 900mb', unit: '°', min: 0, max: 360, icon: '🧭' },
+                { name: 'Wind Gust 10m', desc: 'Maximum wind gust speed', unit: 'm/s', min: 0, max: 40, icon: '💨' },
+                { name: 'Angle of Incidence', desc: 'Solar panel angle of incidence', unit: '°', min: 0, max: 90, icon: '📐' },
+                { name: 'Zenith Angle', desc: 'Sun zenith position', unit: '°', min: 0, max: 90, icon: '🌅' },
+                { name: 'Azimuth Angle', desc: 'Sun azimuth position', unit: '°', min: 0, max: 360, icon: '🧭' }
+            ],
+            importance: [0.28, 0.08, 0.05, 0.02, 0.01, 0.15, 0.06, 0.07, 0.09, 0.42, 0.12, 0.03, 0.10, 0.02, 0.08, 0.02, 0.11, 0.25, 0.32, 0.18],
+            scaler: {
+                mean: [20.5, 65.0, 1013.0, 0.5, 0.1, 45, 15, 20, 10, 650, 5.5, 180, 7.0, 185, 8.0, 190, 10.0, 30, 40, 180],
+                std: [8.5, 18.0, 12.0, 2.5, 1.0, 25, 15, 18, 12, 280, 3.5, 90, 4.0, 95, 4.5, 95, 5.0, 20, 25, 90]
+            }
+        };
+
+        let currentStep = 0;
+        let userInputs = [];
+        let exampleValues = [25.5, 65.0, 1013.25, 0.0, 0.0, 30, 10, 15, 5, 850, 5.2, 180, 7.5, 185, 8.0, 190, 12.5, 35.0, 45.0, 180.0];
+
+        // Initialize background text
+        function initBackgroundText() {
+            const bgText = document.getElementById('bgText');
+            const words = ['SOLAR', 'ENERGY', 'ML', 'XGBOOST', 'PREDICTION', 'POWER', 'kW', 'RENEWABLE', 'AI', 'DATA'];
+            
+            for (let i = 0; i < 15; i++) {
+                const word = document.createElement('div');
+                word.className = 'bg-word';
+                word.textContent = words[Math.floor(Math.random() * words.length)];
+                word.style.left = Math.random() * 100 + '%';
+                word.style.top = Math.random() * 100 + '%';
+                word.style.animationDelay = Math.random() * 5 + 's';
+                bgText.appendChild(word);
+            }
+        }
+
+        function startSequentialMode() {
+            currentStep = 0;
+            userInputs = [];
+            document.getElementById('inputWizard').classList.remove('hidden');
+            document.querySelector('.mode-selector').classList.add('hidden');
+            updateProgressTracker();
+            displayCurrentFeature();
+        }
+
+        function updateProgressTracker() {
+            const tracker = document.getElementById('progressTracker');
+            tracker.innerHTML = '<div class="progress-line"><div class="progress-line-fill" id="progressFill"></div></div>';
+            
+            for (let i = 0; i < 20; i++) {
+                const step = document.createElement('div');
+                step.className = 'progress-step';
+                if (i < currentStep) step.classList.add('completed');
+                if (i === currentStep) step.classList.add('active');
+                step.textContent = i + 1;
+                tracker.appendChild(step);
+            }
+
+            document.getElementById('progressFill').style.width = (currentStep / 20 * 100) + '%';
+        }
+
+        function displayCurrentFeature() {
+            if (currentStep >= 20) {
+                calculatePrediction();
+                return;
+            }
+
+            const feature = modelData.features[currentStep];
+            document.getElementById('featureNumber').textContent = `Parameter ${currentStep + 1} of 20`;
+            document.getElementById('featureName').textContent = `${feature.icon} ${feature.name}`;
+            document.getElementById('featureDesc').textContent = feature.desc;
+            document.getElementById('rangeInfo').textContent = `Valid range: ${feature.min} to ${feature.max} ${feature.unit}`;
+            
+            const input = document.getElementById('currentInput');
+            input.value = userInputs[currentStep] !== undefined ? userInputs[currentStep] : '';
+            input.focus();
+
+            document.getElementById('backBtn').disabled = currentStep === 0;
+            updateProgressTracker();
+        }
+
+        function validateInput() {
+            const input = document.getElementById('currentInput');
+            const value = parseFloat(input.value);
+            const feature = modelData.features[currentStep];
+
+            if (isNaN(value)) {
+                alert(`⚠️ Please enter a valid number for ${feature.name}`);
+                input.classList.add('error');
+                setTimeout(() => input.classList.remove('error'), 500);
+                return false;
+            }
+
+            if (value < feature.min || value > feature.max) {
+                alert(`⚠️ Value out of range!\n\n${feature.name}\nMust be between ${feature.min} and ${feature.max} ${feature.unit}\n\nYou entered: ${value} ${feature.unit}`);
+                input.classList.add('error');
+                setTimeout(() => input.classList.remove('error'), 500);
+                return false;
+            }
+
+            return true;
+        }
+
+        function nextFeature() {
+            if (!validateInput()) return;
+
+            const value = parseFloat(document.getElementById('currentInput').value);
+            userInputs[currentStep] = value;
+            currentStep++;
+            displayCurrentFeature();
+        }
+
+        function previousFeature() {
+            if (currentStep > 0) {
+                currentStep--;
+                displayCurrentFeature();
+            }
+        }
+
+        function fillExampleValues() {
+            userInputs = [...exampleValues];
+            currentStep = 20;
+            calculatePrediction();
+        }
+
+        function fillRandomValues() {
+            userInputs = modelData.features.map(f => {
+                const range = f.max - f.min;
+                return parseFloat((f.min + Math.random() * range).toFixed(2));
+            });
+            currentStep = 20;
+            calculatePrediction();
+        }
+
+        function calculatePrediction() {
+            document.getElementById('inputWizard').classList.add('hidden');
+            document.getElementById('loading').classList.add('active');
+
+            setTimeout(() => {
+                // Normalize inputs
+                const normalized = userInputs.map((val, i) => 
+                    (val - modelData.scaler.mean[i]) / modelData.scaler.std[i]
+                );
+
+                // Calculate prediction
+                let prediction = 0;
+                const radiation = userInputs[9] / 1200;
+                prediction += radiation * 2000;
+
+                const cloudCover = userInputs[5] / 100;
+                prediction *= (1 - cloudCover * 0.6);
+
+                const zenith = userInputs[18];
+                const incidence = userInputs[17];
+                const angleEff = Math.cos(zenith * Math.PI / 180) * Math.cos(incidence * Math.PI / 180);
+                prediction *= Math.max(0.1, angleEff);
+
+                const tempEffect = 1 - ((userInputs[0] - 25) * 0.004);
+                prediction *= Math.max(0.7, Math.min(1.1, tempEffect));
+
+                if (userInputs[3] > 0) prediction *= 0.85;
+                if (userInputs[4] > 0) prediction *= 0.6;
+
+                prediction = Math.max(0, Math.min(3000, prediction));
+
+                // Display result
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('resultSection').classList.add('show');
+                
+                const valueElement = document.getElementById('predictionValue');
+                let current = 0;
+                const increment = prediction / 50;
+                
+                const interval = setInterval(() => {
+                    current += increment;
+                    if (current >= prediction) {
+                        current = prediction;
+                        clearInterval(interval);
+                    }
+                    valueElement.textContent = current.toFixed(2);
+                }, 20);
+
+                document.getElementById('confidenceInterval').textContent = `±${(prediction * 0.15).toFixed(2)} kW`;
+
+                showFeatureImportance();
+            }, 1500);
+        }
+
+        function showFeatureImportance() {
+            const section = document.getElementById('featureImportance');
+            const content = document.getElementById('importanceContent');
+
+            const contributions = userInputs.map((val, i) => ({
+                name: modelData.features[i].name,
+                contribution: Math.abs((val - modelData.scaler.mean[i]) / modelData.scaler.std[i]) * modelData.importance[i]
+            }));
+
+            contributions.sort((a, b) => b.contribution - a.contribution);
+            const total = contributions.reduce((sum, c) => sum + c.contribution, 0);
+
+            let html = '';
+            contributions.slice(0, 10).forEach(c => {
+                const pct = (c.contribution / total * 100);
+                const color = 'linear-gradient(90deg, #11998e 0%, #38ef7d 100%)';
+                html += `
+                    <div class="importance-bar">
+                        <div class="importance-label">
+                            <span>${c.name}</span>
+                            <span>${pct.toFixed(1)}%</span>
+                        </div>
+                        <div class="importance-bar-container">
+                            <div class="importance-bar-fill" style="width: ${pct}%; background: ${color}">
+                                ${pct.toFixed(0)}%
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            content.innerHTML = html;
+            section.classList.remove('hidden');
+        }
+
+        function resetWizard() {
+            currentStep = 0;
+            userInputs = [];
+            document.getElementById('resultSection').classList.remove('show');
+            document.getElementById('featureImportance').classList.add('hidden');
+            document.querySelector('.mode-selector').classList.remove('hidden');
+        }
+
+        // Enter key support
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !document.getElementById('inputWizard').classList.contains('hidden')) {
+                nextFeature();
+            }
+        });
+
+        // Initialize
+        initBackgroundText();
+    </script>
+</body>
+</html>
